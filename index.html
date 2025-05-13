@@ -14,8 +14,7 @@
   </style>
 </head>
 <body class="bg-blue-50 text-gray-800">
-  <button id="toggleSidebar" class="lg:hidden fixed top-4 left-4 z-50 bg-blue-800 text-white px-4 py-2 rounded shadow">☰ Menu</button>
-  <div id="layoutContainer" class="flex flex-col lg:flex-row min-h-screen">
+  <div class="flex flex-col lg:flex-row min-h-screen">
     <!-- Sidebar -->
     <aside class="w-full lg:w-72 bg-blue-800 text-white p-6 flex flex-col shadow-lg">
       <h1 class="text-3xl font-bold mb-4">WA CRM</h1>
@@ -113,23 +112,5 @@
   </div>
 
   <script type="module" src="script.js"></script>
-  <script>
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const sidebar = document.querySelector('aside');
-
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      sidebar.classList.toggle('absolute');
-      sidebar.classList.toggle('top-0');
-      sidebar.classList.toggle('left-0');
-      sidebar.classList.toggle('z-40');
-      sidebar.classList.toggle('w-full');
-    });
-
-    // Ocultar a sidebar por padrão em telas pequenas
-    if (window.innerWidth < 1024) {
-      sidebar.classList.add('hidden');
-    }
-  </script>
 </body>
 </html>
