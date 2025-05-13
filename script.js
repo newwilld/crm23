@@ -141,7 +141,7 @@ function atualizarLista() {
     btn.addEventListener('click', () => excluirCliente(btn.dataset.id));
   });
 
-  totalValorEl.textContent = `R$ ${totalValor.toFixed(2)}`;
+  totalValorEl.textContent = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   totalRealizandoEl.textContent = totalRealizando;
   totalEntregueEl.textContent = totalEntregue;
   totalClientesEl.textContent = totalExibido;
