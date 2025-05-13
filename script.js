@@ -97,7 +97,12 @@ function atualizarLista() {
     const fundoStatus = cliente.status === 'entregue' ? 'bg-[#beffd1]' :
                         cliente.status === 'realizando' ? 'bg-[#fee2e2]' : 'bg-white';
 
-    card.className = `${fundoStatus} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition`;
+    let prioridadeClasse = 'border-l-blue-600';
+if (cliente.prioridade === 'alta') prioridadeClasse = 'border-l-red-600';
+else if (cliente.prioridade === 'média') prioridadeClasse = 'border-l-yellow-500';
+
+card.className = `${fundoStatus} border-l-8 ${prioridadeClasse} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition`;
+
 
     card.innerHTML = `
       <div class="flex items-center gap-4">
