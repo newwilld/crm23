@@ -94,7 +94,10 @@ function atualizarLista() {
       .toUpperCase();
 
     const card = document.createElement('div');
-    card.className = "bg-white rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition";
+    const fundoStatus = cliente.status === 'entregue' ? 'bg-[#beffd1]' :
+                        cliente.status === 'realizando' ? 'bg-[#fee2e2]' : 'bg-white';
+
+    card.className = `${fundoStatus} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition`;
 
     card.innerHTML = `
       <div class="flex items-center gap-4">
