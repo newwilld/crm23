@@ -17,7 +17,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const clientesRef = ref(db, 'clientes');
 
-// Elementos DOM
 const addClienteBtn = document.getElementById('addClienteBtn');
 const modal = document.getElementById('modalCliente');
 const cancelarBtn = document.getElementById('cancelarBtn');
@@ -30,18 +29,14 @@ const filtroPrioridade = document.getElementById('filtroPrioridade');
 const buscarCliente = document.getElementById('buscarCliente');
 const exportarBtn = document.getElementById('exportarBtn');
 const importarInput = document.getElementById('importarInput');
-
-// Dashboard
 const totalRealizandoEl = document.getElementById('totalRealizando');
 const totalEntregueEl = document.getElementById('totalEntregue');
 const totalClientesEl = document.getElementById('totalClientes');
 
-// Estado
 let clientes = [];
 let editando = false;
 let clienteIdAtual = null;
 
-// Inicialização
 carregarClientes();
 setupEventListeners();
 
@@ -89,41 +84,42 @@ function atualizarLista() {
 
     totalValor += cliente.valor || 0;
     totalExibido++;
-
     if (cliente.status === 'realizando') totalRealizando++;
     if (cliente.status === 'entregue') totalEntregue++;
 
+    const iniciais = (cliente.nome || '?')
+      .split(' ')
+      .map(p => p[0])
+      .join('')
+      .toUpperCase();
+
     const card = document.createElement('div');
-    card.className = "bg-white shadow-lg rounded-xl p-4 flex flex-col gap-2 border-l-4 " +
-      (cliente.prioridade === 'alta'
-        ? 'border-red-500'
-        : cliente.prioridade === 'média'
-        ? 'border-yellow-400'
-        : 'border-blue-400');
+    card.className = "bg-white rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition";
 
     card.innerHTML = `
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-blue-800">${cliente.nome || 'Sem nome'}</h3>
-        <span class="text-sm text-gray-500">${cliente.data || ''}</span>
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-lg">
+          ${iniciais}
+        </div>
+        <div>
+          <p class="font-semibold text-blue-800">${cliente.nome || 'Sem nome'}</p>
+          <p class="text-sm text-gray-500">${cliente.contato || '-'}</p>
+          <div class="flex gap-2 mt-2">
+            <button class="btn-edit text-xs px-2 py-1 bg-indigo-500 text-white rounded" data-id="${cliente.id}">✏️</button>
+            <a class="btn-whatsapp text-xs px-2 py-1 bg-green-500 text-white rounded" href="https://wa.me/${(cliente.contato || '').replace(/\D/g, '')}" target="_blank">📱</a>
+            <button class="btn-delete text-xs px-2 py-1 bg-red-500 text-white rounded" data-id="${cliente.id}">🗑️</button>
+          </div>
+        </div>
       </div>
-      <p class="text-sm text-gray-600"><strong>Empresa:</strong> ${cliente.empresa || '-'}</p>
-      <p class="text-sm"><strong>Contato:</strong> ${cliente.contato || '-'}</p>
-      <p class="text-sm"><strong>Serviço:</strong> ${cliente.tipo || '-'} — <strong>R$</strong> ${(cliente.valor || 0).toFixed(2)}</p>
-      <div class="flex gap-2 text-sm">
-        <span class="px-2 py-1 rounded-full text-white text-xs ${cliente.status === 'entregue' ? 'bg-green-500' : 'bg-blue-500'}">${cliente.status}</span>
-        <span class="px-2 py-1 rounded-full bg-gray-200 text-gray-800 text-xs">${cliente.prioridade}</span>
-      </div>
-      <div class="flex gap-2 mt-3">
-        <button class="btn-edit flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded" data-id="${cliente.id}">✏️ Editar</button>
-        <a class="btn-whatsapp flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded text-center" href="https://wa.me/${(cliente.contato || '').replace(/\D/g, '')}" target="_blank">📱 WhatsApp</a>
-        <button class="btn-delete flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded" data-id="${cliente.id}">🗑️ Excluir</button>
+      <div class="text-right">
+        <p class="text-sm text-gray-600">${cliente.tipo || '-'}</p>
+        <p class="text-lg font-bold text-green-600">R$ ${(cliente.valor || 0).toFixed(2)}</p>
       </div>
     `;
 
     listaClientes.appendChild(card);
   });
 
-  // Eventos dos botões
   document.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', () => editarCliente(btn.dataset.id));
   });
@@ -132,14 +128,12 @@ function atualizarLista() {
     btn.addEventListener('click', () => excluirCliente(btn.dataset.id));
   });
 
-  // Atualiza o dashboard
   totalValorEl.textContent = `R$ ${totalValor.toFixed(2)}`;
   totalRealizandoEl.textContent = totalRealizando;
   totalEntregueEl.textContent = totalEntregue;
   totalClientesEl.textContent = totalExibido;
 }
 
-// Modal
 function abrirModalNovoCliente() {
   limparFormulario();
   editando = false;
@@ -147,11 +141,11 @@ function abrirModalNovoCliente() {
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 }
+
 function fecharModal() {
   modal.classList.add('hidden');
 }
 
-// CRUD
 function salvarCliente() {
   const cliente = obterDadosFormulario();
   if (!cliente.nome || !cliente.contato) {
@@ -183,7 +177,6 @@ function excluirCliente(id) {
   }
 }
 
-// Formulário
 function obterDadosFormulario() {
   return {
     nome: document.getElementById('nomeCliente').value,
@@ -197,6 +190,7 @@ function obterDadosFormulario() {
     obs: document.getElementById('obsCliente').value
   };
 }
+
 function preencherFormulario(cliente) {
   document.getElementById('nomeCliente').value = cliente.nome || '';
   document.getElementById('empresaCliente').value = cliente.empresa || '';
@@ -208,12 +202,12 @@ function preencherFormulario(cliente) {
   document.getElementById('dataCriacao').value = cliente.data || '';
   document.getElementById('obsCliente').value = cliente.obs || '';
 }
+
 function limparFormulario() {
   document.querySelectorAll('#modalCliente input, #modalCliente select, #modalCliente textarea')
     .forEach(el => el.value = '');
 }
 
-// Exportar e Importar
 function exportarClientes() {
   const blob = new Blob([JSON.stringify(clientes, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -223,6 +217,7 @@ function exportarClientes() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
 function importarClientes(e) {
   const file = e.target.files[0];
   if (!file) return;
