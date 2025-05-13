@@ -1,8 +1,7 @@
-// Importações do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-// Configuração do Firebase
+// Configuração do Firebase com seus dados reais
 const firebaseConfig = {
   apiKey: "AIzaSyBnKmIAnR80BzMv9oVeKWgF_ZQVZbdAfew",
   authDomain: "crm23-7beb7.firebaseapp.com",
@@ -14,9 +13,12 @@ const firebaseConfig = {
   measurementId: "G-ZLELD4MVLF"
 };
 
-// Inicialização do Firebase
+// Inicialize o Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+// Referência para o nó 'clientes' no Firebase
+const clientesRef = ref(db, 'clientes');
 
 // Elementos DOM
 const addClienteBtn = document.getElementById('addClienteBtn');
@@ -35,28 +37,76 @@ let clientes = [];
 let editando = false;
 let clienteIdAtual = null;
 
-// Event Listeners
-addClienteBtn.addEventListener('click', abrirModalNovoCliente);
-cancelarBtn.addEventListener('click', fecharModal);
-salvarBtn.addEventListener('click', salvarCliente);
-filtroStatus.addEventListener('change', atualizarLista);
-filtroServico.addEventListener('change', atualizarLista);
-exportarBtn.addEventListener('click', exportarClientes);
-importarInput.addEventListener('change', importarClientes);
-
-// Carregar clientes do Firebase
+// Inicialização
 carregarClientes();
+setupEventListeners();
 
-// Funções
+// Funções principais
 function carregarClientes() {
-  const clientesRef = ref(db, 'clientes');
   onValue(clientesRef, (snapshot) => {
     const data = snapshot.val();
     clientes = data ? Object.entries(data).map(([id, cliente]) => ({ id, ...cliente })) : [];
     atualizarLista();
+  }, {
+    onlyOnce: false // Para atualizações em tempo real
   });
 }
 
+function setupEventListeners() {
+  addClienteBtn.addEventListener('click', abrirModalNovoCliente);
+  cancelarBtn.addEventListener('click', fecharModal);
+  salvarBtn.addEventListener('click', salvarCliente);
+  filtroStatus.addEventListener('change', atualizarLista);
+  filtroServico.addEventListener('change', atualizarLista);
+  exportarBtn.addEventListener('click', exportarClientes);
+  importarInput.addEventListener('change', importarClientes);
+}
+
+function atualizarLista() {
+  listaClientes.innerHTML = '';
+  let total = 0;
+  const fs = filtroStatus.value;
+  const ft = filtroServico.value;
+
+  clientes.forEach(cliente => {
+    if ((fs && cliente.status !== fs) || (ft && cliente.tipo !== ft)) return;
+    
+    total += cliente.valor || 0;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="p-2">${cliente.nome || ''}</td>
+      <td class="p-2">${cliente.empresa || ''}</td>
+      <td class="p-2">${cliente.contato || ''}</td>
+      <td class="p-2">${cliente.tipo || ''}</td>
+      <td class="p-2">R$ ${(cliente.valor || 0).toFixed(2)}</td>
+      <td class="p-2">${cliente.prioridade || ''}</td>
+      <td class="p-2">${cliente.status || ''}</td>
+      <td class="p-2">${cliente.data || ''}</td>
+      <td class="p-2 flex gap-1 flex-wrap">
+        <button class="btn-edit px-2 py-1 bg-blue-500 text-white rounded" data-id="${cliente.id}">Editar</button>
+        <a class="btn-whatsapp px-2 py-1 bg-green-500 text-white rounded" 
+           href="https://wa.me/${(cliente.contato || '').replace(/\D/g, '')}" 
+           target="_blank">Zap</a>
+        <button class="btn-delete px-2 py-1 bg-red-500 text-white rounded" data-id="${cliente.id}">Excluir</button>
+      </td>
+    `;
+    listaClientes.appendChild(tr);
+  });
+
+  // Adiciona eventos aos botões dinâmicos
+  document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', () => editarCliente(btn.dataset.id));
+  });
+
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => excluirCliente(btn.dataset.id));
+  });
+
+  totalValorEl.textContent = `R$ ${total.toFixed(2)}`;
+}
+
+// Funções do modal
 function abrirModalNovoCliente() {
   limparFormulario();
   editando = false;
@@ -77,30 +127,20 @@ function salvarCliente() {
     return;
   }
 
-  const clientesRef = ref(db, 'clientes');
-  
   if (editando) {
-    // Atualizar cliente existente
-    const clienteRef = ref(db, `clientes/${clienteIdAtual}`);
-    update(clienteRef, cliente)
-      .then(() => {
-        fecharModal();
-      })
-      .catch((error) => {
-        alert("Erro ao atualizar cliente: " + error.message);
-      });
+    // Atualiza cliente existente
+    update(ref(db, `clientes/${clienteIdAtual}`), cliente)
+      .then(fecharModal)
+      .catch(error => alert(`Erro ao atualizar: ${error.message}`));
   } else {
-    // Adicionar novo cliente
+    // Adiciona novo cliente
     push(clientesRef, cliente)
-      .then(() => {
-        fecharModal();
-      })
-      .catch((error) => {
-        alert("Erro ao adicionar cliente: " + error.message);
-      });
+      .then(fecharModal)
+      .catch(error => alert(`Erro ao adicionar: ${error.message}`));
   }
 }
 
+// Funções auxiliares
 function obterDadosFormulario() {
   return {
     nome: document.getElementById('nomeCliente').value,
@@ -128,43 +168,11 @@ function preencherFormulario(cliente) {
 }
 
 function limparFormulario() {
-  document.querySelectorAll('#modalCliente input, #modalCliente select, #modalCliente textarea').forEach(e => e.value = '');
+  document.querySelectorAll('#modalCliente input, #modalCliente select, #modalCliente textarea').forEach(el => el.value = '');
 }
 
-function atualizarLista() {
-  listaClientes.innerHTML = '';
-  let total = 0;
-  const fs = filtroStatus.value;
-  const ft = filtroServico.value;
-
-  clientes.forEach((cliente) => {
-    if ((fs && cliente.status !== fs) || (ft && cliente.tipo !== ft)) return;
-    total += cliente.valor || 0;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="p-2">${cliente.nome}</td>
-      <td class="p-2">${cliente.empresa}</td>
-      <td class="p-2">${cliente.contato}</td>
-      <td class="p-2">${cliente.tipo}</td>
-      <td class="p-2">R$ ${(cliente.valor || 0).toFixed(2)}</td>
-      <td class="p-2">${cliente.prioridade}</td>
-      <td class="p-2">${cliente.status}</td>
-      <td class="p-2">${cliente.data}</td>
-      <td class="p-2 flex gap-1 flex-wrap">
-        <button class="btn-edit action-btn" onclick="editarCliente('${cliente.id}')">Editar</button>
-        <a class="btn-whatsapp action-btn" href="https://wa.me/${cliente.contato.replace(/\D/g, '')}" target="_blank">Zap</a>
-        <button class="btn-delete action-btn" onclick="excluirCliente('${cliente.id}')">Excluir</button>
-      </td>
-    `;
-    listaClientes.appendChild(tr);
-  });
-
-  totalValorEl.textContent = 'R$ ' + total.toFixed(2);
-}
-
-// Funções globais necessárias para os botões na tabela
-window.editarCliente = function(id) {
+// Funções de edição/exclusão
+function editarCliente(id) {
   const cliente = clientes.find(c => c.id === id);
   if (cliente) {
     editando = true;
@@ -173,24 +181,23 @@ window.editarCliente = function(id) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
-};
+}
 
-window.excluirCliente = function(id) {
-  if (confirm("Tem certeza que deseja excluir este cliente?")) {
-    const clienteRef = ref(db, `clientes/${id}`);
-    remove(clienteRef)
-      .catch((error) => {
-        alert("Erro ao excluir cliente: " + error.message);
-      });
+function excluirCliente(id) {
+  if (confirm('Tem certeza que deseja excluir este cliente?')) {
+    remove(ref(db, `clientes/${id}`))
+      .catch(error => alert(`Erro ao excluir: ${error.message}`));
   }
-};
+}
 
+// Exportar/Importar
 function exportarClientes() {
-  const blob = new Blob([JSON.stringify(clientes, null, 2)], { type: "application/json" });
+  const dataStr = JSON.stringify(clientes, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
-  a.download = "clientes-wa.json";
+  a.download = `clientes-wa-${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -200,33 +207,27 @@ function importarClientes(e) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function(event) {
+  reader.onload = (event) => {
     try {
-      const dadosImportados = JSON.parse(event.target.result);
+      const dados = JSON.parse(event.target.result);
+      if (!Array.isArray(dados)) throw new Error('Formato inválido');
 
-      if (!Array.isArray(dadosImportados)) {
-        alert("O arquivo não está no formato correto.");
-        return;
-      }
-
-      if (confirm(`Deseja importar ${dadosImportados.length} clientes?`)) {
-        const clientesRef = ref(db, 'clientes');
-        
-        // Limpar clientes existentes (opcional - comente se não quiser apagar os existentes)
-        // remove(clientesRef).catch(error => console.error("Erro ao limpar clientes:", error));
-        
-        // Adicionar novos clientes
-        dadosImportados.forEach(cliente => {
-          push(clientesRef, cliente)
-            .catch(error => console.error("Erro ao importar cliente:", error));
+      if (confirm(`Importar ${dados.length} clientes?`)) {
+        const batch = [];
+        dados.forEach(cliente => {
+          // Remove o ID existente para o Firebase gerar um novo
+          const { id, ...clienteSemId } = cliente;
+          batch.push(push(clientesRef, clienteSemId));
         });
-        
-        alert("Clientes importados com sucesso!");
-        e.target.value = ''; // Limpar o input
+
+        Promise.all(batch)
+          .then(() => alert('Clientes importados com sucesso!'))
+          .catch(err => alert(`Erro ao importar: ${err.message}`));
       }
     } catch (err) {
-      alert("Erro ao ler o arquivo JSON: " + err.message);
+      alert(`Erro: ${err.message}`);
     }
+    e.target.value = ''; // Limpa o input
   };
   reader.readAsText(file);
 }
