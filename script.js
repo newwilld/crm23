@@ -99,19 +99,17 @@ function atualizarLista() {
       .join('')
       .toUpperCase();
 
-    const fundoStatus = cliente.status === 'entregue' ? 'bg-entregue' :
-                        cliente.status === 'realizando' ? 'bg-realizando' : 'bg-white';
+    const fundoStatus = cliente.status === 'entregue' ? 'bg-[#beffd1]' :
+                        cliente.status === 'realizando' ? 'bg-[#fee2e2]' : 'bg-white';
 
-    let prioridadeClasse = 'borda-baixa';
-    if (cliente.prioridade === 'alta') prioridadeClasse = 'borda-alta';
-    else if (cliente.prioridade === 'média') prioridadeClasse = 'borda-media';
+    let prioridadeClasse = 'border-l-blue-600';
+    if (cliente.prioridade === 'alta') prioridadeClasse = 'border-l-red-600';
+    else if (cliente.prioridade === 'média') prioridadeClasse = 'border-l-yellow-500';
 
     const card = document.createElement('div');
-    const prioridadeIcone = cliente.prioridade === 'alta' ? '🔥' : cliente.prioridade === 'média' ? '⚠️' : '🟢';
-    card.className = `${fundoStatus} border-l-8 ${prioridadeClasse} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition relative`;
+    card.className = `${fundoStatus} border-l-8 ${prioridadeClasse} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition`;
 
     card.innerHTML = `
-      <div class="absolute -top-2 -left-2 text-xl">${prioridadeIcone}</div>` +
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-lg">
           ${iniciais}
