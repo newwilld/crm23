@@ -51,7 +51,7 @@ function carregarClientes() {
     onlyOnce: false // Para atualizações em tempo real
   });
 }
-
+const filtroPrioridade = document.getElementById('filtroPrioridade');
 function setupEventListeners() {
   addClienteBtn.addEventListener('click', abrirModalNovoCliente);
   cancelarBtn.addEventListener('click', fecharModal);
@@ -67,6 +67,8 @@ function atualizarLista() {
   let total = 0;
   const fs = filtroStatus.value;
   const ft = filtroServico.value;
+  const fp = filtroPrioridade.value;
+  if ((fs && c.status !== fs) || (ft && c.tipo !== ft) || (fp && c.prioridade !== fp)) return;
 
   clientes.forEach(cliente => {
     if ((fs && cliente.status !== fs) || (ft && cliente.tipo !== ft)) return;
@@ -230,4 +232,6 @@ function importarClientes(e) {
     e.target.value = ''; // Limpa o input
   };
   reader.readAsText(file);
+filtroPrioridade.onchange = atualizarLista;
 }
+
