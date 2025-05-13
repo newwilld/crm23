@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBnKmIAnR80BzMv9oVeKWgF_ZQVZbdAfew",
   authDomain: "crm23-7beb7.firebaseapp.com",
@@ -72,16 +71,23 @@ function atualizarLista() {
   const fp = filtroPrioridade.value;
   const busca = buscarCliente.value.toLowerCase().trim();
 
-  clientes.forEach(cliente => {
+  let filtrados = clientes.filter(cliente => {
     if (
       (fs && cliente.status !== fs) ||
       (ft && cliente.tipo !== ft) ||
-      (fp && cliente.prioridade !== fp) ||
       (busca &&
         !cliente.nome.toLowerCase().includes(busca) &&
         !cliente.empresa.toLowerCase().includes(busca))
-    ) return;
+    ) return false;
+    return true;
+  });
 
+  if (fp) {
+    const prioridadeOrdem = { 'alta': 1, 'média': 2, 'baixa': 3 };
+    filtrados.sort((a, b) => (prioridadeOrdem[a.prioridade] || 4) - (prioridadeOrdem[b.prioridade] || 4));
+  }
+
+  filtrados.forEach(cliente => {
     totalValor += cliente.valor || 0;
     totalExibido++;
     if (cliente.status === 'realizando') totalRealizando++;
@@ -93,16 +99,15 @@ function atualizarLista() {
       .join('')
       .toUpperCase();
 
-    const card = document.createElement('div');
     const fundoStatus = cliente.status === 'entregue' ? 'bg-[#beffd1]' :
                         cliente.status === 'realizando' ? 'bg-[#fee2e2]' : 'bg-white';
 
     let prioridadeClasse = 'border-l-blue-600';
-if (cliente.prioridade === 'alta') prioridadeClasse = 'border-l-red-600';
-else if (cliente.prioridade === 'média') prioridadeClasse = 'border-l-yellow-500';
+    if (cliente.prioridade === 'alta') prioridadeClasse = 'border-l-red-600';
+    else if (cliente.prioridade === 'média') prioridadeClasse = 'border-l-yellow-500';
 
-card.className = `${fundoStatus} border-l-8 ${prioridadeClasse} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition`;
-
+    const card = document.createElement('div');
+    card.className = `${fundoStatus} border-l-8 ${prioridadeClasse} rounded-lg shadow-sm flex items-center justify-between p-4 hover:shadow-md transition`;
 
     card.innerHTML = `
       <div class="flex items-center gap-4">
