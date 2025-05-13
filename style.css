@@ -108,4 +108,21 @@ td {
     display: block;
     margin-bottom: 0.25rem;
   }
+  /* Cores de fundo pelo status */
+.bg-entregue {
+  background-color: #beffd1 !important;
+}
+.bg-realizando {
+  background-color: #fee2e2 !important;
+}
+
+/* Cores de borda esquerda por prioridade */
+.borda-alta {
+  border-left-color: #dc2626 !important;
+}
+.borda-media {
+  border-left-color: #f59e0b !important;
+}
+.borda-baixa {
+  border-left-color: #3b82f6 !important;
 }
