@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-const buscarCliente = document.getElementById('buscarCliente');
-// Configuração do Firebase com seus dados reais
+
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBnKmIAnR80BzMv9oVeKWgF_ZQVZbdAfew",
   authDomain: "crm23-7beb7.firebaseapp.com",
@@ -13,14 +13,13 @@ const firebaseConfig = {
   measurementId: "G-ZLELD4MVLF"
 };
 
-// Inicialize o Firebase
+// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-// Referência para o nó 'clientes' no Firebase
 const clientesRef = ref(db, 'clientes');
 
-// Elementos DOM
+// Elementos do DOM
+const buscarCliente = document.getElementById('buscarCliente');
 const addClienteBtn = document.getElementById('addClienteBtn');
 const modal = document.getElementById('modalCliente');
 const cancelarBtn = document.getElementById('cancelarBtn');
@@ -29,57 +28,61 @@ const listaClientes = document.getElementById('listaClientes');
 const totalValorEl = document.getElementById('totalValor');
 const filtroStatus = document.getElementById('filtroStatus');
 const filtroServico = document.getElementById('filtroServico');
+const filtroPrioridade = document.getElementById('filtroPrioridade');
 const exportarBtn = document.getElementById('exportarBtn');
 const importarInput = document.getElementById('importarInput');
 
-// Variáveis de estado
+// Estado
 let clientes = [];
 let editando = false;
 let clienteIdAtual = null;
 
-// Inicialização
+// Inicializa
 carregarClientes();
 setupEventListeners();
 
-// Funções principais
+// Carrega dados do Firebase em tempo real
 function carregarClientes() {
   onValue(clientesRef, (snapshot) => {
     const data = snapshot.val();
     clientes = data ? Object.entries(data).map(([id, cliente]) => ({ id, ...cliente })) : [];
     atualizarLista();
-  }, {
-    onlyOnce: false // Para atualizações em tempo real
   });
 }
-const filtroPrioridade = document.getElementById('filtroPrioridade');
-const textoBusca = buscarCliente.value.trim().toLowerCase();
+
+// Eventos principais
 function setupEventListeners() {
   addClienteBtn.addEventListener('click', abrirModalNovoCliente);
   cancelarBtn.addEventListener('click', fecharModal);
   salvarBtn.addEventListener('click', salvarCliente);
   filtroStatus.addEventListener('change', atualizarLista);
   filtroServico.addEventListener('change', atualizarLista);
+  filtroPrioridade.addEventListener('change', atualizarLista);
+  buscarCliente.addEventListener('input', atualizarLista);
   exportarBtn.addEventListener('click', exportarClientes);
   importarInput.addEventListener('change', importarClientes);
 }
 
+// Atualiza tabela com filtros
 function atualizarLista() {
   listaClientes.innerHTML = '';
   let total = 0;
+
   const fs = filtroStatus.value;
   const ft = filtroServico.value;
   const fp = filtroPrioridade.value;
-  if ((fs && c.status !== fs) || (ft && c.tipo !== ft) || (fp && c.prioridade !== fp)) return;
+  const textoBusca = buscarCliente.value.trim().toLowerCase();
 
   clientes.forEach(cliente => {
     if (
-  (fs && c.status !== fs) ||
-  (ft && c.tipo !== ft) ||
-  (fp && c.prioridade !== fp) ||
-  (textoBusca && !c.nome.toLowerCase().includes(textoBusca) && !c.empresa.toLowerCase().includes(textoBusca))
-) return;
+      (fs && cliente.status !== fs) ||
+      (ft && cliente.tipo !== ft) ||
+      (fp && cliente.prioridade !== fp) ||
+      (textoBusca &&
+        !cliente.nome.toLowerCase().includes(textoBusca) &&
+        !cliente.empresa.toLowerCase().includes(textoBusca))
+    ) return;
 
-    
     total += cliente.valor || 0;
 
     const tr = document.createElement('tr');
@@ -103,7 +106,6 @@ function atualizarLista() {
     listaClientes.appendChild(tr);
   });
 
-  // Adiciona eventos aos botões dinâmicos
   document.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', () => editarCliente(btn.dataset.id));
   });
@@ -115,7 +117,7 @@ function atualizarLista() {
   totalValorEl.textContent = `R$ ${total.toFixed(2)}`;
 }
 
-// Funções do modal
+// Modal
 function abrirModalNovoCliente() {
   limparFormulario();
   editando = false;
@@ -128,28 +130,26 @@ function fecharModal() {
   modal.classList.add('hidden');
 }
 
+// Salvar ou atualizar
 function salvarCliente() {
   const cliente = obterDadosFormulario();
-  
   if (!cliente.nome || !cliente.contato) {
     alert("Nome e contato são obrigatórios!");
     return;
   }
 
-  if (editando) {
-    // Atualiza cliente existente
+  if (editando && clienteIdAtual) {
     update(ref(db, `clientes/${clienteIdAtual}`), cliente)
       .then(fecharModal)
-      .catch(error => alert(`Erro ao atualizar: ${error.message}`));
+      .catch(err => alert(`Erro ao atualizar: ${err.message}`));
   } else {
-    // Adiciona novo cliente
     push(clientesRef, cliente)
       .then(fecharModal)
-      .catch(error => alert(`Erro ao adicionar: ${error.message}`));
+      .catch(err => alert(`Erro ao adicionar: ${err.message}`));
   }
 }
 
-// Funções auxiliares
+// Formulário
 function obterDadosFormulario() {
   return {
     nome: document.getElementById('nomeCliente').value,
@@ -170,36 +170,37 @@ function preencherFormulario(cliente) {
   document.getElementById('contatoCliente').value = cliente.contato || '';
   document.getElementById('valorCliente').value = cliente.valor || '';
   document.getElementById('tipoServico').value = cliente.tipo || '';
-  document.getElementById('prioridadeCliente').value = cliente.prioridade || 'baixa';
-  document.getElementById('statusCliente').value = cliente.status || 'realizando';
+  document.getElementById('prioridadeCliente').value = cliente.prioridade || '';
+  document.getElementById('statusCliente').value = cliente.status || '';
   document.getElementById('dataCriacao').value = cliente.data || '';
   document.getElementById('obsCliente').value = cliente.obs || '';
 }
 
 function limparFormulario() {
-  document.querySelectorAll('#modalCliente input, #modalCliente select, #modalCliente textarea').forEach(el => el.value = '');
+  document.querySelectorAll('#modalCliente input, #modalCliente select, #modalCliente textarea')
+    .forEach(el => el.value = '');
 }
 
-// Funções de edição/exclusão
+// Editar / Excluir
 function editarCliente(id) {
   const cliente = clientes.find(c => c.id === id);
   if (cliente) {
+    preencherFormulario(cliente);
     editando = true;
     clienteIdAtual = id;
-    preencherFormulario(cliente);
     modal.classList.remove('hidden');
     modal.classList.add('flex');
   }
 }
 
 function excluirCliente(id) {
-  if (confirm('Tem certeza que deseja excluir este cliente?')) {
+  if (confirm("Deseja excluir este cliente?")) {
     remove(ref(db, `clientes/${id}`))
-      .catch(error => alert(`Erro ao excluir: ${error.message}`));
+      .catch(err => alert(`Erro ao excluir: ${err.message}`));
   }
 }
 
-// Exportar/Importar
+// Exportar / Importar
 function exportarClientes() {
   const dataStr = JSON.stringify(clientes, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
@@ -222,24 +223,19 @@ function importarClientes(e) {
       if (!Array.isArray(dados)) throw new Error('Formato inválido');
 
       if (confirm(`Importar ${dados.length} clientes?`)) {
-        const batch = [];
-        dados.forEach(cliente => {
-          // Remove o ID existente para o Firebase gerar um novo
-          const { id, ...clienteSemId } = cliente;
-          batch.push(push(clientesRef, clienteSemId));
+        const promessas = dados.map(c => {
+          const { id, ...novo } = c;
+          return push(clientesRef, novo);
         });
 
-        Promise.all(batch)
-          .then(() => alert('Clientes importados com sucesso!'))
-          .catch(err => alert(`Erro ao importar: ${err.message}`));
+        Promise.all(promessas)
+          .then(() => alert('Importado com sucesso!'))
+          .catch(err => alert(`Erro: ${err.message}`));
       }
     } catch (err) {
       alert(`Erro: ${err.message}`);
     }
-    e.target.value = ''; // Limpa o input
+    e.target.value = '';
   };
   reader.readAsText(file);
-filtroPrioridade.onchange = atualizarLista;
-  buscarCliente.oninput = atualizarLista;
 }
-
