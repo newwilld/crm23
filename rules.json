@@ -1,6 +1,8 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true
+    "clientes": {
+      ".read": true,
+      ".write": true
+    }
   }
 }
