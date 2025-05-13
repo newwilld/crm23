@@ -52,6 +52,7 @@ function carregarClientes() {
   });
 }
 const filtroPrioridade = document.getElementById('filtroPrioridade');
+const textoBusca = buscarCliente.value.trim().toLowerCase();
 function setupEventListeners() {
   addClienteBtn.addEventListener('click', abrirModalNovoCliente);
   cancelarBtn.addEventListener('click', fecharModal);
@@ -71,7 +72,13 @@ function atualizarLista() {
   if ((fs && c.status !== fs) || (ft && c.tipo !== ft) || (fp && c.prioridade !== fp)) return;
 
   clientes.forEach(cliente => {
-    if ((fs && cliente.status !== fs) || (ft && cliente.tipo !== ft)) return;
+    if (
+  (fs && c.status !== fs) ||
+  (ft && c.tipo !== ft) ||
+  (fp && c.prioridade !== fp) ||
+  (textoBusca && !c.nome.toLowerCase().includes(textoBusca) && !c.empresa.toLowerCase().includes(textoBusca))
+) return;
+
     
     total += cliente.valor || 0;
 
@@ -233,5 +240,6 @@ function importarClientes(e) {
   };
   reader.readAsText(file);
 filtroPrioridade.onchange = atualizarLista;
+  buscarCliente.oninput = atualizarLista;
 }
 
