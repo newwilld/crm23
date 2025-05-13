@@ -6,50 +6,17 @@
   <title>WA CRM - Clientes</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Configuração do Firebase -->
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBnKmIAnR80BzMv9oVeKWgF_ZQVZbdAfew",
-      authDomain: "crm23-7beb7.firebaseapp.com",
-      databaseURL: "https://crm23-7beb7-default-rtdb.firebaseio.com",
-      projectId: "crm23-7beb7",
-      storageBucket: "crm23-7beb7.firebasestorage.app",
-      messagingSenderId: "219795920284",
-      appId: "1:219795920284:web:9817ab18b0f098e8f4e459",
-      measurementId: "G-ZLELD4MVLF"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const database = getDatabase(app);
-    
-    // Exporte as funções do Firebase que serão usadas no script.js
-    window.firebase = {
-      database,
-      ref,
-      push,
-      onValue,
-      update,
-      remove
-    };
-  </script>
 </head>
 <body class="bg-gray-100 text-gray-800">
   <div class="flex flex-col md:flex-row min-h-screen">
     
     <!-- Sidebar -->
-    <aside class="w-full md:w-64 bg-green-700 text-white p-6">
+    <aside class="w-full md:w-64 text-white p-6">
       <h1 class="text-2xl font-bold mb-4">WA CRM</h1>
       <p class="text-sm">Valor Total dos Serviços</p>
       <p id="totalValor" class="text-3xl font-bold mb-6">R$ 0,00</p>
+      
+      <!-- Botões -->
       <button id="addClienteBtn" class="bg-white text-green-700 px-4 py-2 rounded hover:bg-gray-100 font-semibold w-full">
         + Novo Cliente
       </button>
@@ -66,6 +33,7 @@
 
     <!-- Conteúdo -->
     <main class="flex-1 p-6">
+      <!-- Filtros -->
       <div class="flex gap-4 mb-4 flex-wrap">
         <select id="filtroStatus" class="p-2 border rounded">
           <option value="">Todos os Status</option>
@@ -80,6 +48,7 @@
         </select>
       </div>
 
+      <!-- Tabela de Clientes -->
       <table class="w-full table-auto bg-white shadow-md rounded">
         <thead>
           <tr class="bg-gray-200 text-left">
@@ -99,15 +68,15 @@
     </main>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal de Cliente -->
   <div id="modalCliente" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
     <div class="bg-white p-6 rounded w-full max-w-xl">
       <h2 class="text-xl font-bold mb-4">Adicionar/Editar Cliente</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input id="nomeCliente" class="border p-2 rounded" type="text" placeholder="Nome do Cliente">
-        <input id="empresaCliente" class="border p-2 rounded" type="text" placeholder="Empresa do Cliente">
-        <input id="contatoCliente" class="border p-2 rounded" type="text" placeholder="WhatsApp ou Email">
-        <input id="valorCliente" class="border p-2 rounded" type="number" placeholder="Valor R$">
+        <input id="nomeCliente" class="border p-2 rounded" type="text" placeholder="Nome do Cliente" />
+        <input id="empresaCliente" class="border p-2 rounded" type="text" placeholder="Empresa do Cliente" />
+        <input id="contatoCliente" class="border p-2 rounded" type="text" placeholder="WhatsApp ou Email" />
+        <input id="valorCliente" class="border p-2 rounded" type="number" placeholder="Valor R$" />
         <select id="tipoServico" class="border p-2 rounded">
           <option value="">Tipo de Serviço</option>
           <option value="logotipo">Logotipo</option>
@@ -123,7 +92,7 @@
           <option value="realizando">Realizando</option>
           <option value="entregue">Entregue</option>
         </select>
-        <input id="dataCriacao" class="border p-2 rounded" type="date">
+        <input id="dataCriacao" class="border p-2 rounded" type="date" />
         <textarea id="obsCliente" class="border p-2 rounded md:col-span-2" placeholder="Observações"></textarea>
       </div>
       <div class="flex justify-end mt-4 gap-2">
@@ -133,7 +102,7 @@
     </div>
   </div>
 
+  <!-- Firebase + CRM Script -->
   <script type="module" src="script.js"></script>
-
 </body>
 </html>
