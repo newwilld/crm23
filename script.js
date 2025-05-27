@@ -31,9 +31,6 @@ const importarInput = document.getElementById('importarInput');
 const totalRealizandoEl = document.getElementById('totalRealizando');
 const totalEntregueEl = document.getElementById('totalEntregue');
 const totalClientesEl = document.getElementById('totalClientes');
-// Novos indicadores:
-const vendasSemanaAtualEl = document.getElementById('vendasSemanaAtual');
-const vendasSemanaPassadaEl = document.getElementById('vendasSemanaPassada');
 const vendasMesAtualEl = document.getElementById('vendasMesAtual');
 const vendasMesPassadoEl = document.getElementById('vendasMesPassado');
 
@@ -264,17 +261,6 @@ function importarClientes(e) {
 
 // ===== NOVAS FUNÇÕES PARA INDICADORES DE VENDAS ===== //
 
-// Helpers de datas
-function getStartOfWeek(date) {
-  const d = new Date(date);
-  const diff = d.getDate() - d.getDay() + 1; // Segunda-feira
-  return new Date(d.setDate(diff));
-}
-function getEndOfWeek(date) {
-  const d = getStartOfWeek(date);
-  d.setDate(d.getDate() + 6);
-  return d;
-}
 function getStartOfMonth(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
@@ -286,16 +272,6 @@ function countVendasPorPeriodo(clientes, periodo) {
   const hoje = new Date();
   let inicio, fim;
   switch (periodo) {
-    case 'semanaAtual':
-      inicio = getStartOfWeek(hoje);
-      fim = getEndOfWeek(hoje);
-      break;
-    case 'semanaPassada':
-      const semanaPassada = new Date();
-      semanaPassada.setDate(hoje.getDate() - 7);
-      inicio = getStartOfWeek(semanaPassada);
-      fim = getEndOfWeek(semanaPassada);
-      break;
     case 'mesAtual':
       inicio = getStartOfMonth(hoje);
       fim = getEndOfMonth(hoje);
@@ -308,18 +284,14 @@ function countVendasPorPeriodo(clientes, periodo) {
     default:
       return 0;
   }
-
   return clientes.filter(cli => {
     if (!cli.data) return false;
     const data = new Date(cli.data);
-    // Só contar entregues:
     return cli.status === 'entregue' && data >= inicio && data <= fim;
   }).length;
 }
 
 function atualizarIndicadoresVendas() {
-  vendasSemanaAtualEl.textContent = countVendasPorPeriodo(clientes, 'semanaAtual');
-  vendasSemanaPassadaEl.textContent = countVendasPorPeriodo(clientes, 'semanaPassada');
   vendasMesAtualEl.textContent = countVendasPorPeriodo(clientes, 'mesAtual');
   vendasMesPassadoEl.textContent = countVendasPorPeriodo(clientes, 'mesPassado');
 }
