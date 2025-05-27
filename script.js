@@ -31,8 +31,6 @@ const importarInput = document.getElementById('importarInput');
 const totalRealizandoEl = document.getElementById('totalRealizando');
 const totalEntregueEl = document.getElementById('totalEntregue');
 const totalClientesEl = document.getElementById('totalClientes');
-const vendasMesAtualEl = document.getElementById('vendasMesAtual');
-const vendasMesPassadoEl = document.getElementById('vendasMesPassado');
 
 let clientes = [];
 let editando = false;
@@ -46,7 +44,6 @@ function carregarClientes() {
     const data = snapshot.val();
     clientes = data ? Object.entries(data).map(([id, cliente]) => ({ id, ...cliente })) : [];
     atualizarLista();
-    atualizarIndicadoresVendas();
   });
 }
 
@@ -148,7 +145,6 @@ function atualizarLista() {
   totalRealizandoEl.textContent = totalRealizando;
   totalEntregueEl.textContent = totalEntregue;
   totalClientesEl.textContent = totalExibido;
-  atualizarIndicadoresVendas();
 }
 
 function abrirModalNovoCliente() {
@@ -257,41 +253,4 @@ function importarClientes(e) {
     e.target.value = '';
   };
   reader.readAsText(file);
-}
-
-// ===== NOVAS FUNÇÕES PARA INDICADORES DE VENDAS ===== //
-
-function getStartOfMonth(date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-function getEndOfMonth(date) {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-}
-
-function countVendasPorPeriodo(clientes, periodo) {
-  const hoje = new Date();
-  let inicio, fim;
-  switch (periodo) {
-    case 'mesAtual':
-      inicio = getStartOfMonth(hoje);
-      fim = getEndOfMonth(hoje);
-      break;
-    case 'mesPassado':
-      const mesPassado = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-      inicio = getStartOfMonth(mesPassado);
-      fim = getEndOfMonth(mesPassado);
-      break;
-    default:
-      return 0;
-  }
-  return clientes.filter(cli => {
-    if (!cli.data) return false;
-    const data = new Date(cli.data);
-    return cli.status === 'entregue' && data >= inicio && data <= fim;
-  }).length;
-}
-
-function atualizarIndicadoresVendas() {
-  vendasMesAtualEl.textContent = countVendasPorPeriodo(clientes, 'mesAtual');
-  vendasMesPassadoEl.textContent = countVendasPorPeriodo(clientes, 'mesPassado');
 }
